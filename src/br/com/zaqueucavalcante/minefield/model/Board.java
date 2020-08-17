@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
+import br.com.zaqueucavalcante.minefield.exception.ExplosionException;
+
 public class Board {
 
 	private int rows;
@@ -60,9 +62,9 @@ public class Board {
 		int numberOfFields = this.fields.size();
 		Predicate<Field> containsAMine = field -> field.containsAMine();
 		do {
-			numberOfDistributedMines = this.fields.stream().filter(containsAMine).count();
 			randomFieldIndex = (int) (Math.random() * numberOfFields);
 			this.fields.get(randomFieldIndex).placeMine();
+			numberOfDistributedMines = this.fields.stream().filter(containsAMine).count();
 		} while (numberOfDistributedMines < this.minesNumber);
 	}
 
@@ -71,11 +73,16 @@ public class Board {
 		Predicate<Field> rowMatch = field -> field.getRow() == row;
 		Predicate<Field> columnMatch = field -> field.getColumn() == column;
 		Consumer<Field> openField = field -> field.open();
-		this.fields.parallelStream().
+		try {
+			this.fields.parallelStream().
 			filter(rowMatch).
 			filter(columnMatch).
 			findFirst().
 			ifPresent(openField);
+		} catch (ExplosionException e) {
+			this.fields.forEach(field -> field.openWithoutTesting());
+			throw e;
+		}
 	}
 	
 	public void checkField(int row, int column) {

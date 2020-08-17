@@ -92,6 +92,10 @@ public class Field {
 		}
 		return false;
 	}
+	
+	public void openWithoutTesting() {
+		this.open = true;
+	}
 
 	private boolean neighborhoodIsSafe() {
 		return this.neighbors.stream().noneMatch(neighbor -> neighbor.containsAMine);
